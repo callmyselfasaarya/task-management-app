@@ -1,0 +1,24 @@
+{
+  "name": "task-management-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eetukarttunen/task-management-system.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eetukarttunen/task-management-system/issues"
+  },
+  "homepage": "https://github.com/eetukarttunen/task-management-system#readme"
+}
+
+"scripts": {
+  "start": "react-scripts start --openssl-legacy-provider",
+  "build": "react-scripts build --openssl-legacy-provider"
+}
