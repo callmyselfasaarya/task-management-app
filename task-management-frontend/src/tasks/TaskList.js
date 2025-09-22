@@ -62,39 +62,58 @@ function TaskList() {
 	
 
 	return (
-    <div className="group">
-	<h2>ADD A NEW TASK</h2>
-      <div className="inputGroup">
-        <input 
+    <div className="task-container">
+      <div className="task-header">
+        <h2>Add a New Task</h2>
+        <p className="task-subtitle">Organize your tasks by priority and stay productive</p>
+      </div>
+      
+      <div className="task-form">
+        <div className="inputGroup">
+          <input 
             type="text" 
             onChange={e => setNewTask(e.target.value)} 
             value={newTask} 
-            placeholder='Task name'
+            placeholder='Enter task name...'
             name='text'
             className='taskInput'
-        />
-        <select defaultValue="default" value={value} onChange={addPriority} id="framework">
-            <option value="default" disabled hidden>Priority</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option> 
-        </select>
-    	<div className='taskButton' onClick={addTask}>Add</div>
-          
+          />
+          <select 
+            defaultValue="default" 
+            value={value} 
+            onChange={addPriority} 
+            className="priority-select"
+          >
+            <option value="default" disabled hidden>Select Priority</option>
+            <option value="low">Low Priority</option>
+            <option value="medium">Medium Priority</option>
+            <option value="high">High Priority</option> 
+          </select>
+          <button className='taskButton' onClick={addTask}>
+            Add Task
+          </button>
+        </div>
       </div>
-		<div>{tasks.length > 0 ? tasks.map(task => (
-			<div className={task.priority}>
-				<div>{task.text}</div>
-				<div className='icons'>
-				<RiCloseCircleLine
-					onClick={() => deleteTask(task._id)}
-					className='deleteButton'/>
-				</div>
-          
+      
+      <div className="task-list">
+        {tasks.length > 0 ? tasks.map(task => (
+          <div key={task._id} className={`task-item ${task.priority} fade-in-up`}>
+            <div className="task-text">{task.text}</div>
+            <div className="task-actions">
+              <RiCloseCircleLine
+                onClick={() => deleteTask(task._id)}
+                className='deleteButton'
+                title="Delete task"
+              />
+            </div>
           </div>
-				)) : (
-					<p style={{"color": "#7583c4"}}>No tasks added yet</p>
-				)}
+        )) : (
+          <div className="empty-state">
+            <div className="empty-state-icon">📝</div>
+            <p>No tasks added yet</p>
+            <p>Create your first task above to get started!</p>
+          </div>
+        )}
       </div>
     </div>
 	);

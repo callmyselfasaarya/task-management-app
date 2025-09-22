@@ -17,8 +17,3 @@
   },
   "homepage": "https://github.com/eetukarttunen/task-management-system#readme"
 }
-
-"scripts": {
-  "start": "react-scripts start --openssl-legacy-provider",
-  "build": "react-scripts build --openssl-legacy-provider"
-}
