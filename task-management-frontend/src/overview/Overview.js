@@ -1,5 +1,5 @@
 
-import { RiCloseCircleLine } from 'react-icons/ri';
+import { RiCloseCircleLine, RiDeleteBinLine, RiArrowUpSLine, RiArrowDownSLine, RiRefreshLine } from 'react-icons/ri';
 import React, { useState, useEffect } from 'react';
 import './Overview.css';
 
@@ -7,18 +7,29 @@ const api = 'http://localhost:3001';
 
 function Overview() {
 	const [tasks, setTasks] = useState([]);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState("");
 	const [newTask, setNewTask] = useState("");
-  	const [value, setValue] = useState("default");
+		const [value, setValue] = useState("default");
+	const [showHigh, setShowHigh] = useState(true);
+	const [showMedium, setShowMedium] = useState(true);
+	const [showLow, setShowLow] = useState(true);
 
 	useEffect(() => {
 		GetTasks();
 	}, []);
 
 	const GetTasks = () => {
+		setLoading(true);
+		setError("");
 		fetch(api + '/tasks')
 			.then(res => res.json())
 			.then(data => setTasks(data))
-			.catch((err) => console.error("Error: ", err));
+			.catch((err) => {
+				console.error("Error: ", err);
+				setError('Failed to load tasks');
+			})
+			.finally(() => setLoading(false));
 	}
 	
 	const addPriority = (e) => {
@@ -60,12 +71,34 @@ function Overview() {
 
 		setTasks(tasks => tasks.filter(task => task._id !== data.result._id));
 	}
+
+	const clearPriority = async (priority) => {
+		const list = tasks.filter(t => t.priority === priority);
+		if (list.length === 0) return;
+		// Optimistic UI update
+		setTasks(prev => prev.filter(t => t.priority !== priority));
+		try {
+			await Promise.all(
+				list.map(t => fetch(api + '/task/delete/' + t._id, { method: 'DELETE' }))
+			);
+		} catch (e) {
+			console.error(e);
+			// In case of error, refetch to restore state
+			GetTasks();
+		}
+	}
 	
 
 	// Filter tasks by priority
 	const highPriorityTasks = tasks.filter(task => task.priority === 'high');
 	const mediumPriorityTasks = tasks.filter(task => task.priority === 'medium');
 	const lowPriorityTasks = tasks.filter(task => task.priority === 'low');
+
+	// Sort tasks alphabetically for a cleaner overview
+	const sortByText = (a, b) => (a.text || '').localeCompare(b.text || '');
+	const highSorted = [...highPriorityTasks].sort(sortByText);
+	const mediumSorted = [...mediumPriorityTasks].sort(sortByText);
+	const lowSorted = [...lowPriorityTasks].sort(sortByText);
 
 	// Calculate statistics
 	const totalTasks = tasks.length;
@@ -78,6 +111,13 @@ function Overview() {
         <h2>Task Overview</h2>
         <p className="overview-subtitle">Manage and organize your tasks by priority</p>
       </div>
+
+		{loading && (
+			<div className="loading-row">Loading tasks…</div>
+		)}
+		{!loading && error && (
+			<div className="error-row">{error} <button className="retry-btn" onClick={GetTasks}><RiRefreshLine /> Retry</button></div>
+		)}
 
       {/* Statistics Section */}
       <div className="stats-section">
@@ -103,9 +143,20 @@ function Overview() {
 
       {/* High Priority Tasks */}
       <div className="priority-section high">
-        <h3>🔥 High Priority Tasks</h3>
+        <div className="section-header">
+          <h3>🔥 High Priority Tasks <span className="count-badge">{highPriorityTasks.length}</span></h3>
+          <div className="section-controls">
+            <button className="icon-button" aria-label={showHigh ? 'Collapse' : 'Expand'} onClick={() => setShowHigh(v => !v)}>
+              {showHigh ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+            </button>
+            <button className="icon-button danger" aria-label="Clear high priority" onClick={() => clearPriority('high')} disabled={highPriorityTasks.length === 0}>
+              <RiDeleteBinLine />
+            </button>
+          </div>
+        </div>
+        {showHigh && (
         <div className="task-grid">
-          {highPriorityTasks.length > 0 ? highPriorityTasks.map(task => (
+          {highSorted.length > 0 ? highSorted.map(task => (
             <div key={task._id} className={`task-card high fade-in-up`}>
               <div className="task-content">
                 <div className="task-text">{task.text}</div>
@@ -126,13 +177,25 @@ function Overview() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Medium Priority Tasks */}
       <div className="priority-section medium">
-        <h3>⚡ Medium Priority Tasks</h3>
+        <div className="section-header">
+          <h3>⚡ Medium Priority Tasks <span className="count-badge">{mediumPriorityTasks.length}</span></h3>
+          <div className="section-controls">
+            <button className="icon-button" aria-label={showMedium ? 'Collapse' : 'Expand'} onClick={() => setShowMedium(v => !v)}>
+              {showMedium ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+            </button>
+            <button className="icon-button danger" aria-label="Clear medium priority" onClick={() => clearPriority('medium')} disabled={mediumPriorityTasks.length === 0}>
+              <RiDeleteBinLine />
+            </button>
+          </div>
+        </div>
+        {showMedium && (
         <div className="task-grid">
-          {mediumPriorityTasks.length > 0 ? mediumPriorityTasks.map(task => (
+          {mediumSorted.length > 0 ? mediumSorted.map(task => (
             <div key={task._id} className={`task-card medium fade-in-up`}>
               <div className="task-content">
                 <div className="task-text">{task.text}</div>
@@ -153,13 +216,25 @@ function Overview() {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Low Priority Tasks */}
       <div className="priority-section low">
-        <h3>📝 Low Priority Tasks</h3>
+        <div className="section-header">
+          <h3>📝 Low Priority Tasks <span className="count-badge">{lowPriorityTasks.length}</span></h3>
+          <div className="section-controls">
+            <button className="icon-button" aria-label={showLow ? 'Collapse' : 'Expand'} onClick={() => setShowLow(v => !v)}>
+              {showLow ? <RiArrowUpSLine /> : <RiArrowDownSLine />}
+            </button>
+            <button className="icon-button danger" aria-label="Clear low priority" onClick={() => clearPriority('low')} disabled={lowPriorityTasks.length === 0}>
+              <RiDeleteBinLine />
+            </button>
+          </div>
+        </div>
+        {showLow && (
         <div className="task-grid">
-          {lowPriorityTasks.length > 0 ? lowPriorityTasks.map(task => (
+          {lowSorted.length > 0 ? lowSorted.map(task => (
             <div key={task._id} className={`task-card low fade-in-up`}>
               <div className="task-content">
                 <div className="task-text">{task.text}</div>
@@ -180,6 +255,7 @@ function Overview() {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
 	);

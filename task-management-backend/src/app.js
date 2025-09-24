@@ -22,14 +22,21 @@ app.get('/tasks', async (req, res) => {
 });
 
 app.post('/task/new', (req, res) => {
-	const task = new Task({
-		text: req.body.text,
-		priority: req.body.priority
-	})
-
-	task.save();
-
-	res.json(task);
+	try {
+		const task = new Task({
+			text: req.body.text,
+			priority: req.body.priority
+		});
+		return task.save()
+			.then((saved) => res.status(201).json(saved))
+			.catch((err) => {
+				console.error(err);
+				return res.status(400).json({ error: 'Failed to create task' });
+			});
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json({ error: 'Server error' });
+	}
 });
 
 app.delete('/task/delete/:id', async (req, res) => {
@@ -39,13 +46,23 @@ app.delete('/task/delete/:id', async (req, res) => {
 });
 
 app.put('/task/update/:id', async (req, res) => {
-	const task = await Task.findById(req.params.id);
-
-	task.text = req.body.text;
-
-	Task.save();
-
-	res.json(task);
+	try {
+		const task = await Task.findById(req.params.id);
+		if (!task) {
+			return res.status(404).json({ error: 'Task not found' });
+		}
+		if (typeof req.body.text === 'string') {
+			task.text = req.body.text;
+		}
+		if (typeof req.body.priority === 'string') {
+			task.priority = req.body.priority;
+		}
+		const saved = await task.save();
+		return res.json(saved);
+	} catch (err) {
+		console.error(err);
+		return res.status(400).json({ error: 'Failed to update task' });
+	}
 });
 
 app.listen(3001);

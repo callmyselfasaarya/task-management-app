@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom';
 import "react-pro-sidebar/dist/css/styles.css";
 
 // Import your logo (place logo.png inside src/assets or public folder)
-import logo from '../assets/Logo.jpg';
+import logo from '../assets/logo.png';
 
 function Navigation() {
-    const [button, setButton] = useState(true);
+    const [Button, setButton] = useState(true);
     const [click, setClick] = useState(false);
 
     const handleClick = () => setClick(!click);
