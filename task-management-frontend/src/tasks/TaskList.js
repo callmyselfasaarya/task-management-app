@@ -1,6 +1,6 @@
 import "./Task.css";
-import { RiCloseCircleLine } from 'react-icons/ri';
-import React, { useState, useEffect } from 'react';
+import { RiCloseCircleLine, RiMicFill, RiMicOffFill } from 'react-icons/ri';
+import React, { useState, useEffect, useRef } from 'react';
 
 const api = 'http://localhost:3001';
 
@@ -8,6 +8,9 @@ function TaskList() {
 	const [tasks, setTasks] = useState([]);
 	const [newTask, setNewTask] = useState("");
   	const [value, setValue] = useState("default");
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(true);
+  const recognitionRef = useRef(null);
 
 	useEffect(() => {
 		GetTasks();
@@ -60,6 +63,59 @@ function TaskList() {
 		setTasks(tasks => tasks.filter(task => task._id !== data.result._id));
 	}
 	
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+      return;
+    }
+
+    setSpeechSupported(true);
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      setIsListening(false);
+    };
+    recognition.onresult = (event) => {
+      if (!event.results || !event.results[0] || !event.results[0][0]) {
+        return;
+      }
+      const transcript = event.results[0][0].transcript.trim();
+      setNewTask((prev) => (prev ? `${prev} ${transcript}`.trim() : transcript));
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (!speechSupported || !recognitionRef.current) {
+      return;
+    }
+
+    try {
+      if (isListening) {
+        recognitionRef.current.stop();
+      } else {
+        recognitionRef.current.start();
+      }
+    } catch (error) {
+      console.error("Speech recognition failed to start:", error);
+      setIsListening(false);
+    }
+  };
+
 
 	return (
     <div className="task-container">
@@ -70,14 +126,27 @@ function TaskList() {
       
       <div className="task-form">
         <div className="inputGroup">
-          <input 
-            type="text" 
-            onChange={e => setNewTask(e.target.value)} 
-            value={newTask} 
-            placeholder='Enter task name...'
-            name='text'
-            className='taskInput'
-          />
+          <div className="taskInputWrapper">
+            <input 
+              type="text" 
+              onChange={e => setNewTask(e.target.value)} 
+              value={newTask} 
+              placeholder='Type or dictate your task...'
+              name='text'
+              className='taskInput'
+            />
+            <button
+              type="button"
+              className={`micButton${isListening ? ' active' : ''}${!speechSupported ? ' disabled' : ''}`}
+              onClick={toggleListening}
+              aria-pressed={isListening}
+              aria-label={speechSupported ? (isListening ? "Stop voice capture" : "Start voice capture") : "Voice capture not supported"}
+              disabled={!speechSupported}
+            >
+              {isListening ? <RiMicOffFill className="micIcon" /> : <RiMicFill className="micIcon" />}
+              <span className="micLabel">{isListening ? 'Listening' : 'Voice'}</span>
+            </button>
+          </div>
           <select 
             defaultValue="default" 
             value={value} 
@@ -93,6 +162,9 @@ function TaskList() {
             Add Task
           </button>
         </div>
+        <p className={`voice-hint${isListening ? ' active' : ''}${!speechSupported ? ' disabled' : ''}`}>
+          {speechSupported ? (isListening ? "We're listening... describe your task." : "Tap the mic to dictate a task.") : "Voice capture is not supported in this browser."}
+        </p>
       </div>
       
       <div className="task-list">

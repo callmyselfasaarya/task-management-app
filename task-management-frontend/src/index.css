@@ -5,15 +5,21 @@
 }
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--brand-background, linear-gradient(120deg, #020617 0%, #0f172a 30%, #1e1b4b 65%, #312e81 100%));
   min-height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2d3748;
+  color: var(--brand-on, #e2e8f0);
   line-height: 1.6;
+}
+
+/* default gradient uses computed brand colors if available */
+:root {
+  --brand-background: radial-gradient(circle at 20% 20%, rgba(2, 6, 23, 1) 0%, rgba(2, 6, 23, 0.95) 30%),
+                      var(--brand-gradient, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
 }
 
 code {
@@ -27,15 +33,15 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(15, 23, 42, 0.6);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: rgba(148, 163, 184, 0.6);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: rgba(148, 163, 184, 0.85);
 }

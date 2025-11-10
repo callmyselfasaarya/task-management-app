@@ -1,65 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import './Navigation.css';
 import { Link } from 'react-router-dom';
-import "react-pro-sidebar/dist/css/styles.css";
-
-// Import your logo (place logo.png inside src/assets or public folder)
 import logo from '../assets/logo.png';
+import logo01 from '../assets/logo01.png';
 
 function Navigation() {
-    const [Button, setButton] = useState(true);
-    const [click, setClick] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
 
-    const handleClick = () => setClick(!click);
-    const closeMobileMenu = () => setClick(false);
+  useEffect(() => {
+    // Debounced resize listener for optimization
+    const handleResize = () => setIsMobile(window.innerWidth <= 960);
+    window.addEventListener('resize', handleResize);
 
-    const showButton = () => {
-        if (window.innerWidth <= 960) {
-            setButton(false);
-        } else {
-            setButton(true);
-        }
-    };
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    useEffect(() => {
-        showButton();
-        window.addEventListener('resize', showButton);
+  const handleMenuToggle = () => setMenuOpen(prev => !prev);
+  const closeMenu = () => setMenuOpen(false);
 
-        // cleanup listener on unmount
-        return () => window.removeEventListener('resize', showButton);
-    }, []);
-
-    return (
-        <>
-            <nav className='navibar'>
-                <div className='navibar-container'>
-                    
-                    {/* 🔥 Logo on top left */}
-                    <Link to='/' className='navibar-logo' onClick={closeMobileMenu}>
-                        <img src={logo} alt="App Logo" className="logo-img" />
-                    </Link>
-
-                    <div className='menu-icon' onClick={handleClick}>
-                        <i className={click ? 'fas fa-times' : 'fas fa-bars'} />
-                    </div>
-
-                    <ul className={click ? 'navi-menu active' : 'navi-menu'}>
-                        <li className='navi-item'>
-                            <Link to='/' className='navi-links' onClick={closeMobileMenu}>
-                                NEW
-                            </Link>
-                        </li>
-                        <li className='navi-item'>
-                            <Link to='/overview' className='navi-links' onClick={closeMobileMenu}>
-                                OVERVIEW
-                            </Link>
-                        </li>
-                    </ul>
-
-                </div>
-            </nav>
-        </>
-    );
+  return (
+    <nav className='navibar' role="navigation" aria-label="Main Navigation">
+      <div className='navibar-container'>
+        <div className='branding'>
+          <Link to='/' className='navibar-logo' onClick={closeMenu} aria-label="Homepage">
+            <img src={logo} alt="App Logo" className="logo-img" />
+          </Link>
+          <img src={logo01} alt="Side Icon" className="logo-side" />
+        </div>
+        <button
+          className='menu-icon'
+          onClick={handleMenuToggle}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+        >
+          <i className={menuOpen ? 'fas fa-times' : 'fas fa-bars'} aria-hidden="true" />
+        </button>
+        <ul className={`navi-menu${menuOpen ? ' active' : ''}`}>
+          <li className='navi-item'>
+            <Link to='/' className='navi-links' onClick={closeMenu}>NEW</Link>
+          </li>
+          <li className='navi-item'>
+            <Link to='/overview' className='navi-links' onClick={closeMenu}>OVERVIEW</Link>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  );
 }
 
 export default Navigation;
