@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Navigation.css';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo.png';
@@ -6,15 +6,6 @@ import logo01 from '../assets/logo01.png';
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 960);
-
-  useEffect(() => {
-    // Debounced resize listener for optimization
-    const handleResize = () => setIsMobile(window.innerWidth <= 960);
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const handleMenuToggle = () => setMenuOpen(prev => !prev);
   const closeMenu = () => setMenuOpen(false);
